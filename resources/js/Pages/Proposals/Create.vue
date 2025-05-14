@@ -54,10 +54,18 @@ const submit = () => {
                                     <textarea v-model="form.description" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm"></textarea>
                                     <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
                                 </div>
-                                <div>
+                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Amount</label>
-                                    <input v-model="form.amount" type="number" step="0.01" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm">
-                                    <p v-if="form.errors.amount" class="mt-1 text-sm text-red-600">{{ form.errors.amount }}</p>
+                                    <input
+                                        v-model="form.amount"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        @input="validateAmount"
+                                        class="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
+                                    >
+                                    <p v-if="amountError" class="mt-1 text-sm text-red-600">{{ amountError }}</p>
+                                    <p v-else-if="form.errors.amount" class="mt-1 text-sm text-red-600">{{ form.errors.amount }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Status</label>

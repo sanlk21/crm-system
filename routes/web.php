@@ -19,8 +19,24 @@ Route::get('/', function () {
     ]);
 });
 
+// Dashboard route with closure
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $customerCount = \App\Models\Customer::count();
+    $invoiceCount = \App\Models\Invoice::count();
+    $proposalCount = \App\Models\Proposal::count();
+    $proposalStatuses = \App\Models\Proposal::select('status')
+        ->groupBy('status')
+        ->pluck('status')
+        ->mapWithKeys(function ($status) {
+            return [$status => \App\Models\Proposal::where('status', $status)->count()];
+        });
+
+    return Inertia::render('Dashboard', [
+        'customerCount' => $customerCount,
+        'invoiceCount' => $invoiceCount,
+        'proposalCount' => $proposalCount,
+        'proposalStatuses' => $proposalStatuses,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -59,7 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/invoices/update/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::put('/invoices/status-update/{invoice}', [InvoiceController::class, 'updateStatus'])->name('invoices.status.update');
     Route::delete('/invoices/delete/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.delete');
-    Route::get('/invoices/resend/{invoice}', [InvoiceController::class, 'resendInvoice'])->name('invoices.resend'); // Added resend route
+    Route::get('/invoices/resend/{invoice}', [InvoiceController::class, 'resendInvoice'])->name('invoices.resend');
 
     // Transaction routes
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
@@ -71,10 +87,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/transactions/status-update/{transaction}', [TransactionController::class, 'updateStatus'])->name('transactions.status.update');
     Route::delete('/transactions/delete/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.delete');
 
-    // Payment routes
-    Route::get('/payment/process/{invoice}', [PaymentController::class, 'process'])->name('payment.process');
+    // Payment success and cancel routes
     Route::get('/payment/success/{invoice}', [PaymentController::class, 'success'])->name('payment.success');
     Route::get('/payment/cancel/{invoice}', [PaymentController::class, 'cancel'])->name('payment.cancel');
 });
+
+// Public payment process route
+Route::get('/payment/process/{invoice}', [PaymentController::class, 'process'])->name('payment.process');
 
 require __DIR__.'/auth.php';
