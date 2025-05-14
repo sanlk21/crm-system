@@ -69,8 +69,8 @@ class ProposalController extends Controller
             'description' => 'required|string',
             'amount' => 'required|numeric|min:0',
             'status' => 'required|in:draft,sent,approved,rejected',
-            'proposal_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:proposal_date'
+            'proposal_date' => 'required|date|date_equals:today', // Must be today
+            'end_date' => 'required|date|after_or_equal:today'
         ]);
 
         try {
