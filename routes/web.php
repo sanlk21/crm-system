@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\PaymentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -23,6 +24,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -57,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/invoices/update/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
     Route::put('/invoices/status-update/{invoice}', [InvoiceController::class, 'updateStatus'])->name('invoices.status.update');
     Route::delete('/invoices/delete/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.delete');
+    Route::get('/invoices/resend/{invoice}', [InvoiceController::class, 'resendInvoice'])->name('invoices.resend'); // Added resend route
 
     // Transaction routes
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
@@ -67,6 +70,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/transactions/update/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
     Route::put('/transactions/status-update/{transaction}', [TransactionController::class, 'updateStatus'])->name('transactions.status.update');
     Route::delete('/transactions/delete/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.delete');
+
+    // Payment routes
+    Route::get('/payment/process/{invoice}', [PaymentController::class, 'process'])->name('payment.process');
+    Route::get('/payment/success/{invoice}', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/cancel/{invoice}', [PaymentController::class, 'cancel'])->name('payment.cancel');
 });
 
 require __DIR__.'/auth.php';

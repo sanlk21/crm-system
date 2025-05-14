@@ -62,6 +62,7 @@ const props = defineProps({
                         <div class="flex justify-end mt-6 space-x-4">
                             <Link :href="route('invoices.index')" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Back</Link>
                             <Link :href="route('invoices.edit', invoice.id)" class="px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">Edit</Link>
+                            <Link v-if="invoice.status === 'sent' && invoice.customer?.email" :href="route('invoices.resend', invoice.id)" class="px-4 py-2 text-white bg-green-500 rounded-md hover:bg-green-600">Resend Invoice</Link>
                         </div>
                     </div>
                 </div>

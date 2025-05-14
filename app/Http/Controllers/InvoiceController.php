@@ -7,7 +7,8 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendInvoice;
 
 class InvoiceController extends Controller
 {
@@ -42,7 +43,19 @@ class InvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            Invoice::create($request->all());
+            $invoice = Invoice::create($request->all());
+
+            // Send invoice email if status is 'sent'
+            if ($request->status === 'sent') {
+                $customer = $invoice->customer;
+                if (!$customer || !$customer->email) {
+                    throw new \Exception('Customer email is not set.');
+                }
+                Mail::to($customer->email)->send(new SendInvoice($invoice));
+                if (Mail::failures()) {
+                    throw new \Exception('Failed to send invoice email.');
+                }
+            }
 
             DB::commit();
 
@@ -86,6 +99,18 @@ class InvoiceController extends Controller
 
             $invoice->update($request->all());
 
+            // Send invoice email if status is changed to 'sent'
+            if ($request->status === 'sent' && $invoice->wasChanged('status')) {
+                $customer = $invoice->customer;
+                if (!$customer || !$customer->email) {
+                    throw new \Exception('Customer email is not set.');
+                }
+                Mail::to($customer->email)->send(new SendInvoice($invoice));
+                if (Mail::failures()) {
+                    throw new \Exception('Failed to send invoice email.');
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
@@ -122,6 +147,22 @@ class InvoiceController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Failed to delete invoice: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function resendInvoice(Invoice $invoice)
+    {
+        try {
+            if (!$invoice->customer || !$invoice->customer->email) {
+                return back()->with('error', 'Customer email is not set.');
+            }
+            Mail::to($invoice->customer->email)->send(new SendInvoice($invoice));
+            if (Mail::failures()) {
+                return back()->with('error', 'Failed to resend invoice email.');
+            }
+            return back()->with('success', 'Invoice email resent successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to resend invoice: ' . $e->getMessage());
         }
     }
 }
