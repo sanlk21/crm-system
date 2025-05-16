@@ -154,7 +154,6 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Proposal Status Chart -->
                 <div class="bg-white shadow-sm sm:rounded-lg p-6 mb-8">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">
                         Proposal Status Overview
